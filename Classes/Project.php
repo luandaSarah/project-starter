@@ -34,6 +34,8 @@ class Project
         if ($this->type === "static") {
             $this->staticProject();
         }
+
+        $this->gitInit();
         echo "Parfait ! Votre projet est prêt à l'emploi !\n";
         shell_exec("code $this->directoryPath");
     }
@@ -153,5 +155,39 @@ class Project
         new File("$this->directoryPath", "index", ".html")
             ->create()
             ->write($htmlContent);
+    }
+
+
+    private function gitInit()
+    {
+
+        $handle = fopen("php://stdin", "r");
+        echo "Voulez vous creer un dépot Git ? oui ou non ?\n";
+        $isGit = trim(fgets($handle));
+        if ($isGit === "oui") {
+            if (shell_exec("git -v")) {
+                if (!file_exists($this->directoryPath . '\\.git')) {
+                    if ($git = shell_exec("git init $this->directoryPath")) {
+                        echo "$git\n";
+                        $this->gitCommit();
+                    } else {
+                        echo "Une erreur s'est produite\n";
+                        exit;
+                    }
+                } else {
+                    echo "Un dépot est déjà existant\n";
+                    exit;
+                }
+            } else {
+                echo "Impossible git n'est pas installer sur votre machine\n";
+                exit;
+            }
+        }
+    }
+
+    private function gitCommit()
+    {
+        shell_exec("cd  $this->directoryPath  &&  git add .");
+        shell_exec("cd  $this->directoryPath && " . 'git commit -m "feat(INIT) initialisation du projet' . $this->type . '"');
     }
 }
